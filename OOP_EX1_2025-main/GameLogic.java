@@ -8,6 +8,8 @@ public class GameLogic implements PlayableLogic
 {
     private Player _player1;
     private Player _player2;
+    private Position _movePosition;
+    private Disc _moveDisc;
 
   
     ArrayList<Disc> discArrayList = new ArrayList<Disc>();
@@ -109,6 +111,42 @@ public class GameLogic implements PlayableLogic
         return sum;
     }
 
+    public void flip(Position position, Disc disc)
+    {
+        List<Position> validMoveList = ValidMoves();
+        if(!validMoveList.contains(a)) return 0;
+        Disc disc;
+        int counter=0, sum=0;
+        if(isFirstPlayerTurn())
+                {
+                    disc = new SimpleDisc(getFirstPlayer());
+                }
+                else
+                {
+                    disc = new SimpleDisc(getSecondPlayer());
+                }
+        for(Position p: validMoveList)
+        {
+            for(Position next :p.surrounding1())
+            {   
+                counter =0;
+                if(getDiscAtPosition(next).sameOwner(disc))
+                {
+                    continue;
+                }
+                while(next.isLegal() &&!(getDiscAtPosition(next).sameOwner(disc)))
+                {
+                    counter++;   
+                    next = new Position(2*next.get_x() - a.get_x(), 2*next.get_y() - a.get_y());
+                }
+                if(next.isLegal())
+                {
+                    sum += counter;
+                }
+            }
+        }
+    }
+
     @Override
     public Player getFirstPlayer() {
         return _player1;
@@ -132,8 +170,47 @@ public class GameLogic implements PlayableLogic
 
     @Override
     public boolean isGameFinished() {
-        return (discArrayList.size() == 64);
+        List<Position> ans = ValidMoves();
+        if((ans.size() == 0) || (discArrayList.size() == 64))
+        {
+            printEndgame();
+            return true;
+        }
+        return false;
     }
+
+    public void printEndgame()
+    {
+        int sumPlayer1 =0, sumPlayer2 =0, winnerPlayer, loserPlayer;
+        
+        for(Disc disc: discArrayList)
+        {
+                if(disc.getOwner.isPlayerOne)
+                {
+                    sumPlayer1++;
+                }
+                else{
+                    sumPlayer2++;
+                }
+        }
+
+        if(sumPlayer1>sumPlayer2)
+        {
+            winnerPlayer =1;
+            loserPlayer = 2;
+        }
+        else
+        {
+            winnerPlayer =2;
+            loserPlayer = 1;
+        }
+        int loser, winner;
+        loser = Math.min(sumPlayer1, sumPlayer2);
+        winner = Math.max(sumPlayer1, sumPlayer2);
+        System.out.println("Player " + winnerPlayer + "wins with " + winner + "discs! Player " +loserPlayer+ "had " + loser + " discs");
+    }
+
+
 
     @Override
     public void reset() {
@@ -151,6 +228,34 @@ public class GameLogic implements PlayableLogic
 
     @Override
     public void undoLastMove() {
+        System.out.println("Undoing last move: \n");
+        // few other rules here to look at 
+    }
 
+
+    public void move(Position position, Disc disc)
+    {   
+        System.out.println("\n");
+        self._movePosition = position;
+        self._moveDisc = disc;
+        discArrayList.add(disc);
+        print(position, disc);
+    }
+    
+    public void print(Position position, Disc disc)
+    {
+        int numberPlayer;
+        String discType;
+        discType = disc.getType();
+        if(isFirstPlayerTurn)
+        {
+            numberPlayer =1;
+        }
+        else
+        {
+            numberPlayer =2;
+        }
+        
+        System.out.println("Player " + numberPlayer + " flipped the " + discType + "in " + "(" + position.get_x + "," + position.get_y +")");
     }
 }
